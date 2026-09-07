@@ -28,10 +28,18 @@ namespace CP4_to_do_api.Tarefas.Contoller
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<TarefaResponse>> CriarTarefa([FromBody] TarefaRequest tarefaRequest)
         {
-            var response = await _service.CreateAsync(tarefaRequest);
-            return CreatedAtAction(nameof(GetTarefas), new { id = response.Id }, response);
+            try
+            {
+                var response = await _service.CreateAsync(tarefaRequest);
+                return CreatedAtAction(nameof(GetTarefas), new { id = response.Id }, response);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

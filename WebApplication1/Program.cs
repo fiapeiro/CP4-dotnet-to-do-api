@@ -62,3 +62,10 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+
+// Necessario para que o WebApplicationFactory<Program>, usado nos testes de
+// integracao, consiga enxergar esta classe -- top-level statements geram uma
+// classe "Program" implicita e interna; esta declaracao parcial a torna
+// acessivel (e publica) para os projetos de teste.
+public partial class Program { }

@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="WebApplication1/to_do_api.csproj" />
+  <Project Path="CP4_to_do_api.UnitTests/CP4_to_do_api.UnitTests.csproj" />
+  <Project Path="CP4_to_do_api.IntegrationTests/CP4_to_do_api.IntegrationTests.csproj" />
 </Solution>
