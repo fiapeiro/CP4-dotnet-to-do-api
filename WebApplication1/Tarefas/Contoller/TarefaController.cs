@@ -11,9 +11,9 @@ namespace CP4_to_do_api.Tarefas.Contoller
     [Produces("application/json")]
     public class TarefaController : ControllerBase
     {
-        private readonly TarefasService _service;
+        private readonly TarefaService _service;
 
-        public TarefaController(TarefasService service)
+        public TarefaController(TarefaService service)
         {
             _service = service;
         }

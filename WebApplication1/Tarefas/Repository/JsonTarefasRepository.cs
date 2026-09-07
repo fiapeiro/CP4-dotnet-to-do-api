@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CP4_to_do_api.Tarefas.Repository
 {
-    public class JsonTarefasRepository : TarefasRepository
+    public class JsonTarefasRepository : TarefaRepository
     {
         private readonly string _filePath;
         private readonly object _lock = new();

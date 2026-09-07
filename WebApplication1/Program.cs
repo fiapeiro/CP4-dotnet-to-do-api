@@ -1,34 +1,64 @@
-var builder = WebApplication.CreateBuilder(args);
+using Serilog;
+using Serilog.Events;
+using CP4_to_do_api.Tarefas.Infrastructure; // Added using statement for infrastructure extension
 
-// Add services to the container.
+// Configuração do Serilog (Log Estruturado)
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    // Renderiza logs em formato JSON ou estruturado no console
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+    .CreateLogger();
 
-builder.Services.AddControllers();
-builder.Services.AddHealthChecks();
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-// register tarefas repository and service
-builder.Services.AddSingleton<CP4_to_do_api.Tarefas.Repository.TarefasRepository, CP4_to_do_api.Tarefas.Repository.JsonTarefasRepository>();
-builder.Services.AddScoped<CP4_to_do_api.Tarefas.Services.TarefasService>();
-
-// optional: set default file path for tarefas.json inside app folder
-builder.Configuration["TarefasFile"] ??= Path.Combine(AppContext.BaseDirectory, "tarefas.json");
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
+    Log.Information("Iniciando a API de Tarefas");
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Substitui o logger padrão do ASP.NET pelo Serilog
+    builder.Host.UseSerilog();
+
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddOpenApi();
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    builder.Services.AddHealthChecks();
+
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddOpenApi();
+
+    // Injetando as dependências da infraestrutura (OpenTelemetry, Services)
+    builder.Services.AddInfrastructure();
+
+    // optional: set default file path for tarefas.json inside app folder
+    builder.Configuration["TarefasFile"] ??= Path.Combine(AppContext.BaseDirectory, "tarefas.json");
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+    }
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app.MapHealthChecks("/health");
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.MapHealthChecks("/health");
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "A aplicação falhou ao iniciar.");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

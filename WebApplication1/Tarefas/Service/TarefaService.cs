@@ -1,22 +1,27 @@
 using CP4_to_do_api.Tarefas.Contoller;
+using CP4_to_do_api.Tarefas.Diagnostic;
 using CP4_to_do_api.Tarefas.DTOs;
 using CP4_to_do_api.Tarefas.Model;
 using CP4_to_do_api.Tarefas.Repository;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace CP4_to_do_api.Tarefas.Services
 {
-    public class TarefasService
+    public class TarefaService
     {
-        private readonly TarefasRepository _repository;
-        private readonly ILogger<TarefasService> _logger;
+        private readonly TarefaRepository _repository;
+        private readonly ILogger<TarefaService> _logger;
+        private readonly Counter<int> _contadorTarefas;
 
-        public TarefasService(TarefasRepository repository, ILogger<TarefasService> logger)
+        public TarefaService(TarefaRepository repository, ILogger<TarefaService> logger, IMeterFactory meterFactory)
         {
             _repository = repository;
             _logger = logger;
+            var meter = meterFactory.Create(TarefaConstants.MeterName);
+            _contadorTarefas = meter.CreateCounter<int>("games_created_total", description: "Total de jogos criados");
         }
 
         public async Task<List<TarefaResponse>> GetAllAsync()
@@ -47,6 +52,8 @@ namespace CP4_to_do_api.Tarefas.Services
                 "Nova tarefa criada: {NomeTarefa}",
                 tarefa.Nome
             );
+
+            _contadorTarefas.Add(1, new KeyValuePair<string, object?>("nome", tarefa.Nome));
 
             return new TarefaResponse { Id = created.Id, Name = created.Nome };
         }
